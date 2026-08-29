@@ -20,9 +20,14 @@ export function parseDrawingJson(text: string): { shapes: Shape[] } {
   if (!isRecord(parsed) || parsed.version !== 1 || !Array.isArray(parsed.shapes)) {
     throw new Error("Expected a VectorSketch document with version 1 and a shapes array.");
   }
+  const seenIds = new Set<string>();
   const shapes = parsed.shapes.map((shape, index): Shape => {
     if (!isRecord(shape) || typeof shape.type !== "string") throw new Error(`Shape ${index + 1} is malformed.`);
-    const id = typeof shape.id === "string" ? shape.id : createId("imported");
+    let id = typeof shape.id === "string" && shape.id.trim() ? shape.id : createId("imported");
+    if (seenIds.has(id)) {
+      id = createId("imported");
+    }
+    seenIds.add(id);
     if (shape.type === "line" && numberField(shape.x1) && numberField(shape.y1) && numberField(shape.x2) && numberField(shape.y2)) {
       return { id, type: "line", x1: shape.x1, y1: shape.y1, x2: shape.x2, y2: shape.y2 };
     }

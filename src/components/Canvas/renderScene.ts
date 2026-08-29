@@ -19,8 +19,8 @@ function renderBackground(ctx: CanvasRenderingContext2D, width: number, height: 
 function renderGrid(ctx: CanvasRenderingContext2D, state: EditorState, width: number, height: number): void {
   const spacing = GRID_SIZE * state.viewport.scale;
   if (spacing < 4) return;
-  const startX = state.viewport.offsetX % spacing;
-  const startY = state.viewport.offsetY % spacing;
+  const startX = ((state.viewport.offsetX % spacing) + spacing) % spacing;
+  const startY = ((state.viewport.offsetY % spacing) + spacing) % spacing;
   ctx.save();
   ctx.strokeStyle = "#dfe4ea";
   ctx.lineWidth = 1;
@@ -65,7 +65,7 @@ function renderShape(ctx: CanvasRenderingContext2D, shape: Shape, selected: bool
   ctx.restore();
 }
 
-function renderDimensions(ctx: CanvasRenderingContext2D, state: EditorState, shape: Shape, strong = false): void {
+function renderDimensions(ctx: CanvasRenderingContext2D, state: EditorState, shape: Shape, canvasWidth: number, strong = false): void {
   const label = getShapeDimensions(shape);
   const screen = worldToScreen(shapeLabelPoint(shape), state.viewport);
   ctx.save();
@@ -73,7 +73,7 @@ function renderDimensions(ctx: CanvasRenderingContext2D, state: EditorState, sha
   const padding = 6;
   const width = ctx.measureText(label).width + padding * 2;
   const height = 22;
-  const x = Math.max(8, Math.min(screen.x - width / 2, ctx.canvas.clientWidth - width - 8));
+  const x = Math.max(8, Math.min(screen.x - width / 2, canvasWidth - width - 8));
   const y = Math.max(8, screen.y - height / 2);
   ctx.fillStyle = strong ? "rgba(255, 255, 255, 0.95)" : "rgba(255, 255, 255, 0.82)";
   ctx.strokeStyle = strong ? "#0b6fba" : "#c6d1dc";
@@ -128,10 +128,11 @@ export function renderScene(ctx: CanvasRenderingContext2D, state: EditorState, o
   }
   ctx.restore();
 
+  const canvasWidth = ctx.canvas.clientWidth || options.width;
   if (!options.exportMode) {
-    for (const shape of state.shapes) renderDimensions(ctx, state, shape, state.selectedShapeId === shape.id);
-    if (state.draftShape) renderDimensions(ctx, state, state.draftShape, true);
+    for (const shape of state.shapes) renderDimensions(ctx, state, shape, canvasWidth, state.selectedShapeId === shape.id);
+    if (state.draftShape) renderDimensions(ctx, state, state.draftShape, canvasWidth, true);
   } else {
-    for (const shape of state.shapes) renderDimensions(ctx, state, shape);
+    for (const shape of state.shapes) renderDimensions(ctx, state, shape, canvasWidth);
   }
 }

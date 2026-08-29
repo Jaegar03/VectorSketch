@@ -18,24 +18,30 @@ export function useDrawingInteraction(canvasRef: RefObject<HTMLCanvasElement | n
   const spacePressed = useRef(false);
   stateRef.current = state;
 
-  const getWorldPoint = useCallback((event: PointerEvent | React.PointerEvent): Point | null => {
+  const getRawWorldPoint = useCallback((event: PointerEvent | React.PointerEvent): Point | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
-    const raw = screenToWorld(eventPoint(event, canvas), stateRef.current.viewport);
-    return stateRef.current.snapEnabled ? snapPoint(raw) : raw;
+    return screenToWorld(eventPoint(event, canvas), stateRef.current.viewport);
   }, [canvasRef]);
+
+  const getWorldPoint = useCallback((event: PointerEvent | React.PointerEvent): Point | null => {
+    const raw = getRawWorldPoint(event);
+    if (!raw) return null;
+    return stateRef.current.snapEnabled ? snapPoint(raw) : raw;
+  }, [getRawWorldPoint]);
 
   const onPointerDown = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
+    const rawWorld = getRawWorldPoint(event);
     const world = getWorldPoint(event);
-    if (!canvas || !world) return;
+    if (!canvas || !rawWorld || !world) return;
     canvas.setPointerCapture(event.pointerId);
     if (spacePressed.current || event.button === 1) {
       dispatch({ type: "setInteraction", interaction: { type: "panning", origin: eventPoint(event, canvas), viewport: stateRef.current.viewport } });
       return;
     }
     if (stateRef.current.activeTool === "select") {
-      const hit = hitTestShapes(stateRef.current.shapes, world, 8 / stateRef.current.viewport.scale);
+      const hit = hitTestShapes(stateRef.current.shapes, rawWorld, 8 / stateRef.current.viewport.scale);
       if (hit) {
         dispatch({ type: "select", shapeId: hit.id });
         dispatch({ type: "setInteraction", interaction: { type: "dragging", shapeId: hit.id, origin: world, original: hit } });
@@ -47,7 +53,7 @@ export function useDrawingInteraction(canvasRef: RefObject<HTMLCanvasElement | n
     const draft = shapeToDraft(stateRef.current.activeTool, createId(), world, world);
     dispatch({ type: "setDraft", shape: draft });
     dispatch({ type: "setInteraction", interaction: { type: "drawing", start: world } });
-  }, [canvasRef, dispatch, getWorldPoint]);
+  }, [canvasRef, dispatch, getRawWorldPoint, getWorldPoint]);
 
   const onPointerMove = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;

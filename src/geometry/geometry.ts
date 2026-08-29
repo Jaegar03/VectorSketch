@@ -7,7 +7,8 @@ export function distance(a: Point, b: Point): number {
 }
 
 export function angleDegrees(a: Point, b: Point): number {
-  return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+  const raw = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+  return (raw + 360) % 360;
 }
 
 export function normalizeRectangle(start: Point, end: Point): Omit<RectangleShape, "id" | "type"> {
