@@ -1,7 +1,8 @@
+import { memo } from "react";
 import type { EditorState } from "../../state/types";
 import { formatNumber } from "../../geometry/dimensions";
 
-export function StatusBar({ state }: { state: EditorState }) {
+export const StatusBar = memo(function StatusBar({ state }: { state: EditorState }) {
   const cursor = state.cursorWorld ? `${formatNumber(state.cursorWorld.x)}, ${formatNumber(state.cursorWorld.y)}` : "-";
   return (
     <footer className="statusbar">
@@ -11,4 +12,4 @@ export function StatusBar({ state }: { state: EditorState }) {
       <span>Snap: {state.snapEnabled ? "On" : "Off"}</span>
     </footer>
   );
-}
+});

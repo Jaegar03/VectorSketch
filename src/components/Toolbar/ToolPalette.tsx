@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Circle, MousePointer2, Slash, Square } from "lucide-react";
 import type { Dispatch, ReactNode } from "react";
 import type { EditorAction } from "../../state/drawingReducer";
@@ -15,7 +16,7 @@ type Props = {
   dispatch: Dispatch<EditorAction>;
 };
 
-export function ToolPalette({ activeTool, dispatch }: Props) {
+export const ToolPalette = memo(function ToolPalette({ activeTool, dispatch }: Props) {
   return (
     <aside className="tool-palette" aria-label="Drawing tools">
       {tools.map((item) => (
@@ -32,4 +33,4 @@ export function ToolPalette({ activeTool, dispatch }: Props) {
       ))}
     </aside>
   );
-}
+});
