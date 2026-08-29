@@ -12,17 +12,20 @@ export function useKeyboardShortcuts(dispatch: Dispatch<EditorAction>): void {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isTypingTarget(event.target)) return;
       const key = event.key.toLowerCase();
-      if ((event.metaKey || event.ctrlKey) && key === "z") {
-        event.preventDefault();
-        dispatch({ type: event.shiftKey ? "redo" : "undo" });
-      } else if ((event.metaKey || event.ctrlKey) && key === "y") {
-        event.preventDefault();
-        dispatch({ type: "redo" });
-      } else if (key === "delete" || key === "backspace") {
+      if (event.metaKey || event.ctrlKey || event.altKey) {
+        if ((event.metaKey || event.ctrlKey) && key === "z") {
+          event.preventDefault();
+          dispatch({ type: event.shiftKey ? "redo" : "undo" });
+        } else if ((event.metaKey || event.ctrlKey) && key === "y") {
+          event.preventDefault();
+          dispatch({ type: "redo" });
+        }
+        return;
+      }
+      if (key === "delete" || key === "backspace") {
         dispatch({ type: "deleteSelected" });
       } else if (key === "escape") {
-        dispatch({ type: "setDraft", shape: null });
-        dispatch({ type: "setInteraction", interaction: { type: "idle" } });
+        dispatch({ type: "cancelInteraction" });
       } else if (key === "v") dispatch({ type: "setTool", tool: "select" });
       else if (key === "l") dispatch({ type: "setTool", tool: "line" });
       else if (key === "r") dispatch({ type: "setTool", tool: "rectangle" });
